@@ -1,8 +1,18 @@
 #!/usr/bin/env python
 import pigpio
 import time
+import firebase_admin
+from firebase_admin import db
+from firebase_admin import credentials
 
+# initialize modules
 pi = pigpio.pi()
+
+firebase_admin.initialize_app(options={
+    'databaseURL' : 'https://my-db.firebaseio.com'
+})
+root = db.reference()
+peripherals = root.child('peripherals')
 
 I2C_ADDR=0x10 # tentatively
 
@@ -13,17 +23,47 @@ def dc(b):
 
 # function for handling device declaration messages
 def device(slave, name):
+   peripherals.push({
+     slave:
+       {
+         'name': name,
+         'vars': {},
+         'funcs': {}
+       }
+   })
 
 # function for handling variable declaration messages
 def newvar(var_id, slave, var_size, var_type, name):
+    peripherals.child(slave + '/vars').push({
+      var_id:
+        {
+          'name': name,
+          'size': var_size,
+          'type': var_type,
+          'val':{}
+        }
+    })
 
 # function for handling function declaration messages
 def newfun(fun_id, slave, arg_size, arg_type, name):
+    peripherals.child(slave + '/funcs').push({
+      var_id:
+        {
+          'name': name,
+          'size': arg_size,
+          'type': arg_type,
+        }
+    })
 
 # function for handling variable store messages
 def varstore(var_id, slave, value):
+    peripherals.child(slave + '/vars/' + var_id + '/val').push({
+      time.ctime(): value
+    })
 
-# dummy function that just produces an error message if a function call is performed by
+
+
+# dummy function that just produces an error message if a function call is performed by the slave
 def funcall():
     raise RuntimeWarning("The daemon has just received a function call message. The message will be ignored.")
 
