@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-
-from RPi import I2C as i2c
+import pigpio
 import time
 import firebase_admin
 from firebase_admin import db
 from firebase_admin import credentials
 
 # initialize modules
-i2c.init("/dev/i2c-1")
+pi = pigpio.pi()
 
 firebase_admin.initialize_app(options={
     'databaseURL' : 'https://my-db.firebaseio.com'
